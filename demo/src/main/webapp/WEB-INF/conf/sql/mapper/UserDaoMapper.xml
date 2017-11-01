@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lanqiao.dao.UserDao">
+<cache/>
+<resultMap type="org.lanqiao.model.User" id="UserResultMap">
+			<id property="id"  column="id"/>
+			<result property="uname"  column="uname"/>
+			<result property="upass"  column="upass"/>
+			<result property="email"  column="email"/>
+			<association property="dept" javaType="org.lanqiao.model.Dept">
+					<id property="deptId"  column="deptid"/>
+					<result property="deptName"  column="deptname"/>
+			</association>
+	</resultMap>
+	
+	<!--  用户的多条件查询   涛哥 -->
+	<select id="findBySearch"  parameterType="org.lanqiao.vo.UserVo" resultType="java.util.HashMap">
+				select   * from user r left  join  dept  t on   r.deptid=t.deptid  
+			<where>
+					<if test="id != '' and  id !=null">
+						and    id =#{id,jdbcType=VARCHAR}
+						
+					</if>
+					<if test="email !=''  and  email != null ">
+						and    email   like concat('%', #{email} ,'%')
+					
+					</if>
+					<if test="uname != '' and  uname != null ">
+					
+						and    uname  like concat ( '%', #{uname}, '%') 
+					</if>
+					<if test="deptId != null  and  deptId != '' ">
+						and    deptid =#{deptId}
+					
+					</if>
+					
+			</where>
+			
+			<if test="order != null  and  order != '' ">
+						order by  id  ${order}
+					
+			</if>
+			
+	</select>
+	
+	<select id="findList" useCache="true"  resultType="java.util.HashMap">
+		<![CDATA[ 
+				select * from user  r left join   dept    t on  r.deptid=t.deptid
+		]]>
+		
+		
+	</select>
+	
+		<resultMap type="org.lanqiao.model.Dept" id="DeptMap">
+			<id property="deptId"  column="deptid"/>
+			<result property="deptName"  column="deptname"/>
+			<collection property="users" ofType="org.lanqiao.model.User"  > 
+				<id property="id"  column="id"/>
+				<result property="uname"  column="uname"/>
+				<result property="upass"  column="upass"/>
+				<result property="email"  column="email"/>
+			</collection>
+		
+		
+		</resultMap>
+	
+	
+		<select id="findDeptById" resultMap="DeptMap">
+		<![CDATA[ 
+				SELECT
+					*
+				FROM
+					dept t
+				LEFT JOIN USER r ON t.deptid = r.deptid
+				WHERE
+					t.deptid = #{deptid}
+		]]>
+		
+		
+	</select>
+	
+	<select id="findById"  parameterType="string" resultType="org.lanqiao.model.User">
+		<![CDATA[
+				select id as id ,uname as uname ,upass as upass ,email as email  from user where id =#{id}
+		]]>
+		
+		
+	</select>
+	
+	
+	
+	
+	<select id="findByList2"  parameterType="string" resultMap="UserResultMap">
+		<![CDATA[
+				select *  from user left  join  dept where user.deptid=dept.id
+		]]>
+		
+		
+	</select>
+	
+	
+	
+	<select id="findByUsers"  parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[
+				select  id,uname ,upass.email  from  user left  join dept  on user.dept_id=dept.id
+		]]>
+	
+		
+	</select>
+	
+	
+	<select id="findByIdWithMap"  useCache="true" parameterType="string" resultType="java.util.HashMap">
+		<![CDATA[
+				select id as id ,uname as uname ,upass as upass ,email as email  from user where id =#{id}
+		]]>
+	
+		
+	</select>
+	
+	
+	<insert id="insertUser"  parameterType="org.lanqiao.model.User">
+			<![CDATA[
+					insert into  user  values(#{id,jdbcType=NUMERIC},#{uname,jdbcType=VARCHAR},#{upass,jdbcType=VARCHAR},#{email,jdbcType=VARCHAR})
+			]]>
+	
+	</insert>
+	
+	<select id="login"  resultType="org.lanqiao.model.User" >
+	
+		<![CDATA[
+				select * from  user where  uname =#{0} and upass=#{1}
+		]]>
+		
+	</select>
+		<select id="login1"  resultType="org.lanqiao.model.User">
+		<![CDATA[
+				select * from  user where  uname =#{uname} and upass=#{upass}
+		]]>
+		
+	</select>
+	
+	<delete id="deleteUsers">
+				delete  from  user    where  id  in 
+				  <foreach item="id" index="index" collection="array"
+				      open="(" separator="," close=")">
+				        #{id}
+				  </foreach>
+				
+	
+	</delete>
+	
+	
+
+
+	
+</mapper>
